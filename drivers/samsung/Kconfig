@@ -1,0 +1,28 @@
+#
+#
+#
+
+
+menuconfig VIBETONZ
+	tristate "Vibetonz"
+	default m
+	help
+	  Say Y to enable Vibetonz support.
+
+config SAMSUNG_LTE
+	tristate "Samsung LTE"
+	default n
+	help
+		Say Y to enable CMC22x LTE modem.
+
+config SAMSUNG_LTE_BOOTLOADER
+	tristate "Samsung LTE Bootloader"
+	default n
+	help
+		Say Y to enable CMC22x LTE modem.
+
+config SAMSUNG_LTE_MODEMCTL
+	tristate "Samsung LTE modemctl"
+	default n
+	help
+		Say Y to enable CMC22x LTE modem.

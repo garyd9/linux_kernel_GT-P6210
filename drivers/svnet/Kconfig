@@ -1,0 +1,18 @@
+#
+#
+#
+
+menuconfig SAMSUNG_PHONE_SVNET
+	tristate "Samsung Phone Interface - SVN"
+	default n
+	---help---
+		I love you.
+
+if SAMSUNG_PHONE_SVNET
+
+config SUPPORT_SIMDETECT
+	bool "Support SIM detect"
+	help
+		 Say Y if your b'd support SIM detect pin
+
+endif # SAMSUNG_PHONE_SVNET
