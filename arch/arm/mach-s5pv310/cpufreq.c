@@ -1358,6 +1358,9 @@ static struct notifier_block s5pv310_cpufreq_policy_notifier = {
 
 static int s5pv310_cpufreq_cpu_init(struct cpufreq_policy *policy)
 {
+	int iRet;
+	int i;
+
 	policy->cur = policy->min = policy->max = s5pv310_getspeed(policy->cpu);
 
 	cpufreq_frequency_table_get_attr(cpufreq_freq_table, policy->cpu);
@@ -1378,7 +1381,16 @@ static int s5pv310_cpufreq_cpu_init(struct cpufreq_policy *policy)
 		cpumask_setall(policy->cpus);
 	}
 
-	return cpufreq_frequency_table_cpuinfo(policy, cpufreq_freq_table);
+	iRet = cpufreq_frequency_table_cpuinfo(policy, cpufreq_freq_table);
+
+		
+#ifdef CONFIG_ARM_OVERCLK_TO_1400
+	/* if the 1400 is an unnatural overclock, reset the max (scaling) to 1200 */
+	if (policy->max == CPUFREQ_1400MHZ) 
+		policy->max = CPUFREQ_1200MHZ;
+#endif
+
+	return iRet;
 }
 
 static struct cpufreq_driver s5pv310_driver = {
