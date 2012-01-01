@@ -44,6 +44,10 @@
 #include <mach/regs-clock.h>
 #include <mach/pm-core.h>
 
+/* UV */
+extern int exp_UV_mV[6];
+extern int exp_UV_freq[6];
+
 #define CPUFREQ_SAMPLING_RATE      40000
 
 static struct clk *arm_clk;
@@ -210,7 +214,7 @@ static unsigned int asv_armvolt_table_1400[][CPUFREQ_LEVEL_END] = {
 static unsigned int asv_armvolt_table_1400_overclk[][CPUFREQ_LEVEL_END] = {
 	/* CPU_L0,  CPU_L1,  CPU_L2,  CPU_L3,  CPU_L4,	CPU_L5  */
 	{ 1475000, 1400000, 1300000, 1200000, 10100000, 1050000 }, /* SS */
-	{ 1425000, 1300000, 1200000, 1125000, 1025000, 975000 }, /* A */
+	{ 1400000, 1300000, 1200000, 1100000, 1000000, 975000 }, /* A */
 	{ 1375000, 1250000, 1150000, 1075000, 975000, 950000 }, /* B */
 	{ 1350000, 1200000, 1100000, 1025000, 975000, 950000 }, /* C */
 	{ 1300000, 1175000, 1075000, 1000000, 975000, 950000 }, /* D */
@@ -697,19 +701,25 @@ void s5pv310_set_cpufreq_armvolt(unsigned int old_index, unsigned int index)
 
 	if (freqs.new > freqs.old) {
 		volt_change = VOLT_PRECHANGE;
-		pre_volt = cpufreq_table[index].arm_volt;
+		/* pre_volt = cpufreq_table[index].arm_volt; */
+		pre_volt = exp_UV_mV[index];
 		if (freq_trans_val & VOLT_UP_ARM800) {
 			volt_change |= VOLT_POSTCHANGE;
-			pre_volt = cpufreq_table[index - 1].arm_volt;
-			post_volt = cpufreq_table[index].arm_volt;
+			/* pre_volt = cpufreq_table[index - 1].arm_volt;
+			post_volt = cpufreq_table[index].arm_volt; */
+			pre_volt = exp_UV_mV[index - 1];
+			post_volt = exp_UV_mV[index];
 		}
 	} else {
 		volt_change = VOLT_POSTCHANGE;
-		post_volt = cpufreq_table[index].arm_volt;
+		/* post_volt = cpufreq_table[index].arm_volt; */
+		post_volt = exp_UV_mV[index];
 		if (freq_trans_val & VOLT_UP_ARM800) {
 			volt_change |= VOLT_PRECHANGE;
-			pre_volt = cpufreq_table[index - 2].arm_volt;
-			post_volt = cpufreq_table[index].arm_volt;
+			/*pre_volt = cpufreq_table[index - 2].arm_volt;
+			post_volt = cpufreq_table[index].arm_volt; */
+			pre_volt = exp_UV_mV[index - 2];
+			post_volt = exp_UV_mV[index];
 		}
 	}
 
@@ -1755,7 +1765,8 @@ static void s5pv310_set_asv_voltage(void)
 	for (i = 0; cpufreq_freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
 		if (freqs.old == cpufreq_freq_table[i].frequency) {
 			arm_index = cpufreq_freq_table[i].index;
-			arm_volt = cpufreq_table[i].arm_volt;
+			/* arm_volt = cpufreq_table[i].arm_volt; */
+			arm_volt = exp_UV_mV[i];
 #if defined(CONFIG_REGULATOR)
 			regulator_set_voltage(arm_regulator, arm_volt, arm_volt);
 #endif
@@ -1813,7 +1824,7 @@ static void print_cpufreq_table(void)
 					cpufreq_table[i].apll_pms,
 					cpufreq_table[i].clkdiv_cpu0,
 					cpufreq_table[i].clkdiv_cpu1,
-					cpufreq_table[i].arm_volt);
+					exp_UV_mV[i]);
 	}
 
 	printk(KERN_INFO "freq_trans_table\n");
@@ -1952,6 +1963,11 @@ static int s5pv310_cpufreq_table_update(void)
 	}
 #endif
 
+	for (i = 0; i < 6; i++) {
+		exp_UV_freq[i] = cpufreq_freq_table[i].frequency;
+		exp_UV_mV[i] = cpufreq_table[i].arm_volt;
+	}
+
 	/* logout the selected cpufreq table value for debugging */
 	print_cpufreq_table();
 
@@ -1967,7 +1983,7 @@ static void s5pv310_cpufreq_set_pmic_vol_table(void)
 	int i;
 
 	for (i = 0; i < CPUFREQ_LEVEL_END; i++)
-		vol_table[i] = cpufreq_table[i].arm_volt;
+		vol_table[i] = exp_UV_mV[i];
 
 	max8997_set_arm_voltage_table(vol_table, CPUFREQ_LEVEL_END);
 }

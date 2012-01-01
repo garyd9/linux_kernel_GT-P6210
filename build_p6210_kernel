@@ -1,0 +1,16 @@
+#!/bin/sh
+# must have 4.4.3 to work properly with the precompiled ar6000.ko module
+#cd kernel
+mkdir -p kernel/usr/initramfs
+rm -rf kernel/usr/initramfs/*
+cp -a ../initramfs_normal_GT-P6210/* kernel/usr/initramfs
+rm $(find kernel/usr/initramfs -name EMPTY_DIRECTORY -print)
+rm -rf $(find kernel/usr/initramfs -name .git -print)
+make ARCH=arm c210_p2w_rev02_defconfig CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
+make -j3 ARCH=arm CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
+cp  $(find . -name *.ko -print |grep -v initramfs) kernel/usr/initramfs/lib/modules/ 
+touch kernel/usr/initramfs/lib/modules/*
+#rm usr/initramfs_data.cpio
+make -j3 ARCH=arm CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
+#cd ..
+
