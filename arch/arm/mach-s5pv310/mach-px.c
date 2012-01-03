@@ -6024,8 +6024,11 @@ static struct platform_device ram_console_device = {
 	.resource = ram_console_resource,
 };
 
+#define RAM_CONSOLE_CMDLINE ("0x100000@0x5e900000")
+
 static void __init setup_ram_console_mem(char *str)
 {
+	str =  RAM_CONSOLE_CMDLINE;
 	unsigned size = memparse(str, &str);
 	unsigned long flags;
 
@@ -6044,8 +6047,10 @@ static void __init setup_ram_console_mem(char *str)
 		pr_err("%s: %x at %x\n", __func__, size, base);
 	}
 }
-
-__setup("ram_console=", setup_ram_console_mem);
+/* without modifying the bootloader or harcoding cmdlines (which can mess up reboots), no way to pass 
+   a ram_console command line.  Just work around that little issue by triggering on a different parameter
+   and hardcoding the parameters to ram_console in the function */
+__setup("loglevel=", setup_ram_console_mem);
 #endif
 
 #ifdef CONFIG_ANDROID_PMEM
