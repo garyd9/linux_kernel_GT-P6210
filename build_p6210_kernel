@@ -3,7 +3,7 @@
 #cd kernel
 mkdir -p kernel/usr/initramfs
 rm -rf kernel/usr/initramfs/*
-cp -a ../initramfs_normal_GT-P6210/* kernel/usr/initramfs
+cp -a ../initramfs/* kernel/usr/initramfs
 rm $(find kernel/usr/initramfs -name EMPTY_DIRECTORY -print)
 rm -rf $(find kernel/usr/initramfs -name .git -print)
 make ARCH=arm c210_p2w_rev02_defconfig CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
