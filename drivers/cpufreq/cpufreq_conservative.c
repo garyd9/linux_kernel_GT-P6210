@@ -42,7 +42,7 @@
  * this governor will not work.
  * All times here are in uS.
  */
-#define MIN_SAMPLING_RATE_RATIO			(2)
+#define MIN_SAMPLING_RATE_RATIO			(1)
 
 static unsigned int min_sampling_rate;
 
@@ -650,7 +650,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			min_sampling_rate = max(min_sampling_rate,
 					MIN_LATENCY_MULTIPLIER * latency);
 			dbs_tuners_ins.sampling_rate =
-				max(min_sampling_rate,
+				max(min_sampling_rate * 2,	// add the *2 to compensate for halving the MIN_SAMPLING_RATE
 				    latency * LATENCY_MULTIPLIER);
 
 			cpufreq_register_notifier(
