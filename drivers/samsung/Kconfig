@@ -9,6 +9,12 @@ menuconfig VIBETONZ
 	help
 	  Say Y to enable Vibetonz support.
 
+menuconfig SAMSUNG_J4FS
+	tristate "Samsung J4FS Support"
+	default m
+	help
+	  Say Y to enable Samsungs J4FS support.
+
 config SAMSUNG_LTE
 	tristate "Samsung LTE"
 	default n
