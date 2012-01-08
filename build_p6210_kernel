@@ -1,16 +1,30 @@
 #!/bin/sh
+
 # must have 4.4.3 to work properly with the precompiled ar6000.ko module
-#cd kernel
+# some sources of a 4.4.3 toolchain...
+#  pulling the latest source directly from google has it prebuilt
+#COMPILER_DIR=$HOME/google/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
+#  also prebuilt in the android ndk
+#COMPILER_DIR=$HOME/android-ndk-r7/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/arm-linux-androideabi-
+#  and also prebuilt from the cyanogenmod source
+COMPILER_DIR=$HOME/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
+
+# pull a copy if the initramfs from a generic "initramfs" directory thats
+# a sibling of the CWD
 mkdir -p kernel/usr/initramfs
 rm -rf kernel/usr/initramfs/*
 cp -a ../initramfs/* kernel/usr/initramfs
+# clean any git related and "empty directory" place holders
 rm $(find kernel/usr/initramfs -name EMPTY_DIRECTORY -print)
 rm -rf $(find kernel/usr/initramfs -name .git -print)
-make ARCH=arm c210_p2w_rev02_defconfig CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
-make -j3 ARCH=arm CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
+# set the default config
+make ARCH=arm c210_p2w_rev02_defconfig CROSS_COMPILE=$COMPILER_DIR
+# actually compile the kernel
+make -j3 ARCH=arm CROSS_COMPILE=$COMPILER_DIR
+# copy any built modules into our working initramfs copy
 cp  $(find . -name *.ko -print |grep -v initramfs) kernel/usr/initramfs/lib/modules/ 
+# ...and touch the files to force the initramfs to be repacked with zImage
 touch kernel/usr/initramfs/lib/modules/*
-#rm usr/initramfs_data.cpio
-make -j3 ARCH=arm CROSS_COMPILE=$HOME/arm443/bin/arm-eabi-
-#cd ..
+# finally, make again to actually repack zImage
+make -j3 ARCH=arm CROSS_COMPILE=$COMPILER_DIR
 
