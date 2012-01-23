@@ -1332,8 +1332,10 @@ static void sdhci_tasklet_card(unsigned long param)
 	}
 
 	spin_unlock_irqrestore(&host->lock, flags);
-
-	mmc_detect_change(host->mmc, msecs_to_jiffies(200));
+	if (host->flags & SDHCI_DEVICE_DEAD)
+		mmc_detect_change(host->mmc, 0);
+	else
+		mmc_detect_change(host->mmc, msecs_to_jiffies(200));
 }
 
 static void sdhci_tasklet_finish(unsigned long param)
@@ -1741,18 +1743,22 @@ int sdhci_resume_host(struct sdhci_host *host)
 {
 	int ret;
 
-	if (host->vmmc && host->ops->get_card_exist(host)) {
-		int temp = 0;
+	if (host->vmmc) {
+		mdelay(50);
 
-		if (!regulator_is_enabled(host->vmmc))
-			temp = regulator_enable(host->vmmc);
-		else
-			pr_info("%s: regulator already ON\n",
-				mmc_hostname(host->mmc));
-		if (temp) {
-			pr_info("############# %s : MMC Card ON %d\n",
-				__func__, temp);
-			return temp;
+		if (host->ops->get_card_exist(host)) {
+			int temp = 0;
+
+			if (!regulator_is_enabled(host->vmmc))
+				temp = regulator_enable(host->vmmc);
+			else
+				pr_info("%s: regulator already ON\n",
+					mmc_hostname(host->mmc));
+			if (temp) {
+				pr_info("############# %s : MMC Card ON %d\n",
+					__func__, temp);
+				return temp;
+			}
 		}
 	}
 
