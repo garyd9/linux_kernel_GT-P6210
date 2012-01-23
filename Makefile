@@ -1,7 +1,7 @@
 VERSION = 2
 PATCHLEVEL = 6
 SUBLEVEL = 36
-EXTRAVERSION = -garyd9.working
+EXTRAVERSION = -garyd9.20120123
 NAME = Flesh-Eating Bats with Fangs
 
 # *DOCUMENTATION*
