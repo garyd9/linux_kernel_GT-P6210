@@ -45,6 +45,8 @@
 #include "../core/core.h"
 #include "../core/mmc_ops.h"
 
+#include <plat/s5pv310.h>
+
 MODULE_ALIAS("mmc:block");
 
 #define INAND_CMD38_ARG_EXT_CSD  113
@@ -360,7 +362,8 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *req)
 		struct mmc_command cmd;
 		u32 readcmd, writecmd, status = 0;
 
-		if (!(card->host->caps & MMC_CAP_CONT_PATCHED) &&
+		if (s5pv310_subrev() == 0 &&
+			!(card->host->caps & MMC_CAP_CONT_PATCHED) &&
 			(card->host->caps & MMC_CAP_DDR)) {
 			if ((rq_data_dir(req) == WRITE) &&
 				(card->host->ios.bus_width > 3)) {
