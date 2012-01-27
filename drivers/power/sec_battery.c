@@ -300,6 +300,9 @@ static void sec_program_alarm(struct battery_data *battery, int seconds)
 #define AC_CHARGER_HIGH_THRESHOLD	1800
 #define MISC_CHARGER_LOW_THRESHOLD	600
 #define MISC_CHARGER_HIGH_THRESHOLD	799
+#define IPHONE_CHARGER_LOW_THRESHOLD	1899
+#define IPHONE_CHARGER_HIGH_THRESHOLD	2300
+
 static
 enum charger_type sec_check_dedicated_charger(struct battery_data *battery)
 {
@@ -339,6 +342,9 @@ enum charger_type sec_check_dedicated_charger(struct battery_data *battery)
 		break;
 	case AC_CHARGER_LOW_THRESHOLD ... AC_CHARGER_HIGH_THRESHOLD:
 		result = CHARGER_AC;
+		break;
+	case IPHONE_CHARGER_LOW_THRESHOLD ... IPHONE_CHARGER_HIGH_THRESHOLD:
+		result = CHARGER_MISC;
 		break;
 	default:
 		result = CHARGER_USB;
