@@ -245,6 +245,23 @@ static void smb136_set_charging_state(int en, int cable_status)
 			smb136_i2c_write(chg->client, SMB_ChargeCurrent, data);
 			udelay(10);
 			break;
+
+		case CABLE_TYPE_DESKDOCK:
+			/* this is a special case for pulling 950mA from a USB port
+			/* Prevent in-rush current */
+			msleep(100);
+
+			/* HC mode */
+			data = 0x8c;
+			smb136_i2c_write(chg->client, SMB_CommandA, data);
+			udelay(10);
+
+			/* Set charge current to 950mA */
+			data = 0x94;
+			smb136_i2c_write(chg->client, SMB_ChargeCurrent, data);
+			udelay(10);
+			break;
+
 		case CABLE_TYPE_USB:
 		default:
 			/* Prevent in-rush current */
@@ -300,7 +317,7 @@ static int smb136_get_charging_current(void)
 		get_current = 500;
 		break;
 	}
-	pr_debug("%s: Get charging current as %dmA.\n", __func__, get_current);
+	pr_info("%s: Get charging current as %dmA.\n", __func__, get_current);
 	return get_current;
 }
 
@@ -330,7 +347,7 @@ static void smb136_set_charging_current(int set_current)
 		smb136_i2c_write(chg->client, SMB_ChargeCurrent, data);
 		udelay(10);
 	}
-	pr_debug("%s: Set charging current as %dmA.\n", __func__, set_current);
+	pr_info("%s: Set charging current as %dmA.\n", __func__, set_current);
 }
 
 static int smb136_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)

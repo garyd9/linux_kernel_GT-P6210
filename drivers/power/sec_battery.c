@@ -106,6 +106,7 @@ struct battery_info {
 	u32 batt_improper_ta;	/* 1: improper ta */
 	u32 abstimer_is_active;	/* 0 : Not active 1: Active */
 	u32 siop_activated;	/* 0 : Not active 1: Active */
+	u32 force_highcurrent_chrg; /* 0 : Not active 1: Active */
 };
 
 struct battery_data {
@@ -741,7 +742,11 @@ static void sec_set_chg_en(struct battery_data *battery, int enable)
 		else if (battery->current_cable_status == CHARGER_MISC)
 			battery->pdata->set_charging_state(enable,
 						CABLE_TYPE_STATION);
-		else
+		else if (battery->info.force_highcurrent_chrg) {
+			pr_info("%s: Using forced high current USB charge.\n", __func__);
+			battery->pdata->set_charging_state(enable, 
+						CABLE_TYPE_DESKDOCK);
+		} else
 			battery->pdata->set_charging_state(enable,
 						CABLE_TYPE_USB);
 	}
@@ -1061,6 +1066,7 @@ static struct device_attribute sec_battery_attrs[] = {
 	SEC_BATTERY_ATTR(voltage_now),
 #endif
 	SEC_BATTERY_ATTR(jig_on),
+	SEC_BATTERY_ATTR(force_highcurrent_charge),
 };
 
 enum {
@@ -1084,6 +1090,7 @@ enum {
 	VOLTAGE_NOW,
 #endif
 	JIG_ON,
+	FORCE_HIGHCURRENT_CHRG,
 };
 
 static int sec_bat_create_attrs(struct device *dev)
@@ -1177,6 +1184,12 @@ static ssize_t sec_bat_show_property(struct device *dev,
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 			debug_batterydata->pdata->check_jig_status());
 		break;
+
+	case FORCE_HIGHCURRENT_CHRG:
+		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
+			debug_batterydata->info.force_highcurrent_chrg);
+		break;
+
 	default:
 		i = -EINVAL;
 	}
@@ -1250,6 +1263,14 @@ static ssize_t sec_bat_store(struct device *dev,
 		}
 		break;
 #endif
+
+	case FORCE_HIGHCURRENT_CHRG:
+		if (sscanf(buf, "%d\n", &x) == 1) {
+			debug_batterydata->info.force_highcurrent_chrg = (0 == x ? 0 : 1);
+			ret = count;
+		}
+		break;
+
 	default:
 		ret = -EINVAL;
 	}
@@ -1542,7 +1563,7 @@ static void sec_bat_resume(struct device *dev)
 
 static void sec_cable_changed(struct battery_data *battery)
 {
-	pr_debug("charger changed ");
+	pr_debug("%s charger changed ", __func__);
 
 	if (!battery->sec_battery_initial)
 		return;
@@ -1756,6 +1777,8 @@ static int __devinit sec_bat_probe(struct platform_device *pdev)
 	battery->psy_ac.properties = sec_power_properties;
 	battery->psy_ac.num_properties = ARRAY_SIZE(sec_power_properties);
 	battery->psy_ac.get_property = sec_ac_get_property;
+
+	battery->info.force_highcurrent_chrg = 0;
 
 	mutex_init(&battery->work_lock);
 
